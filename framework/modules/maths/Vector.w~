@@ -1,0 +1,59 @@
+﻿namespace vector
+{
+	class Vector1
+	{
+		func Vector1(x)
+		{
+			this.x = x
+		}
+
+		func @tostring
+		{
+			return "(" + this.x + ")"
+		}
+
+		func @add(right)
+		{
+			return Vector1(this.x + right.x)
+		}
+	}
+
+	class Vector2
+	{
+		func Vector2(x, y)
+		{
+			this.x = x
+			this.y = y
+		}
+
+		func @tostring
+		{
+			return "(" + this.x + ", " + this.y + ")"
+		}
+
+		func @add(right)
+		{
+			return Vector2(this.x + right.x, this.y + right.y)
+		}
+	}
+
+	class Vector3
+	{
+		func Vector3(x, y, z)
+		{
+			this.x = x
+			this.y = y
+			this.z = z
+		}
+
+		func @tostring
+		{
+			return "(" + this.x + ", " + this.y + ", " + this.z + ")"
+		}
+
+		func @add(right)
+		{
+			return Vector2(this.x + right.x, this.y + right.y, this.z + right.z)
+		}
+	}
+}

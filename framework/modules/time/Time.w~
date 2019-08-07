@@ -1,0 +1,30 @@
+﻿namespace time
+{
+	class Time
+	{
+		func Time
+		{
+			this.time = time_native()
+		}
+
+		func @tostring
+		{
+			return this.time
+		}
+
+		func @sub(right)
+		{
+			return timediff_native(right.time, this.time)
+		}
+	}
+
+	func difference(time1, time2)
+	{
+		return timediff_native(time1.time, time2.time)
+	}
+
+	func sleep(milis)
+	{
+		timesleep_native(milis)
+	}
+}

@@ -1,0 +1,12 @@
+﻿namespace maths
+{
+	func pow(base, power)
+	{
+		return power_native(base, power)
+	}
+
+	func log(base, num)
+	{
+		return log_native(base, num)
+	}
+}

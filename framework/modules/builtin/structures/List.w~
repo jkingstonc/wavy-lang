@@ -1,0 +1,47 @@
+﻿# James Clarke
+# 04/08/2019
+# Everything list related
+
+namespace list
+{
+	class List
+	{
+		func List(data)
+		{
+			this.contents = createlist_native(data)
+			this.iter_counter = -1
+			this.count = listsize_native(this.contents)
+		}
+
+		func size
+		{
+			return this.count
+		}
+
+		func add(data)
+		{
+			this.contents = addlist_native(this.contents, data)
+			this.count = this.count + 1
+		}
+
+		func get(index)
+		{
+			return indexlist_native(this.contents, index)
+		}
+
+		func @tostring
+		{
+			return tostringlist_native(this.contents)
+		}
+
+		func @iter
+		{
+			if(this.iter_counter >= this.count-1)
+			{
+				interrupt exception::NullIterException()
+			}
+			this.iter_counter = this.iter_counter + 1
+			return this.get(this.iter_counter)
+		}
+	}
+}
