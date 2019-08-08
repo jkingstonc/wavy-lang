@@ -16,6 +16,7 @@ public class NativeLoader
     {
         IONative.native_obj,
         MathsNative.native_obj,
+        ConvertNative.native_obj,
         ListNative.native_obj,
         TimeNative.native_obj,
     };
