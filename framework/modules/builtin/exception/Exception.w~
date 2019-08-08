@@ -30,4 +30,13 @@ namespace exception
 			super.Exception("The given key was not found")
 		}
 	}
+	
+	# Called when an array index is not found in a dictionary
+	class IndexOutOfRangeException extends Exception
+	{
+		func IndexOutOfRangeException
+		{
+			super.Exception("The index was out of range")
+		}
+	}
 }
