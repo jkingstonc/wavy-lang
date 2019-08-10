@@ -204,7 +204,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
 
     public object visit_literal(LiteralExpr literal_expr)
     {
-        return literal_expr.value;
+        return Primitives.parse_literal(literal_expr.value);
     }
     
     // Generate a WavyObject from a literal value
