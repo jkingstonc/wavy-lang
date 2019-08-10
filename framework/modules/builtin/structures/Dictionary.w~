@@ -34,7 +34,7 @@ namespace dictionary
 					return _.value
 				}
 			}
-			interrupt exception::KeyNotFoundException()
+			interrupt exception::KeyNotFoundException(key)
 		}
 	}
 }

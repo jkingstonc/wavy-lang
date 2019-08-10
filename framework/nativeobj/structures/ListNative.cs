@@ -24,11 +24,13 @@ public static class ListNative
         },
         { "indexlist_native", NativeLoader.create_native(2, (interpreter, args) =>
             {
-                if((int)Math.Round((double)args[1])< ((List<object>)args[0]).Count)
+                int index = (int)Math.Round((double)args[1]);
+                if(index < ((List<object>)args[0]).Count && index > -1)
                 {
-                    return ((List<object>)args[0])[(int)Math.Round((double)args[1])];
+                    return ((List<object>)args[0])[index];
                 }
-                throw new RuntimeException("Index is out of range");
+                ExceptionManager.interrupt_wavy_exception("IndexOutOfRangeException", new List<object>() { (int)Math.Round((double)args[1]) });
+                return null;
             })
         },
         { "tostringlist_native", NativeLoader.create_native(1, (interpreter, args) =>

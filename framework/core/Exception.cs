@@ -1,12 +1,14 @@
 ﻿public class ExceptionManager
 {
+    public static Interpreter interpreter;
+
     // For use when we want to cause an interrupt from the wavy~ core, such as IndexOutOfBounds
-    public static void interrupt_wavy_exception(Interpreter interpreter, string exception_name)
+    public static void interrupt_wavy_exception(string exception_name, System.Collections.Generic.List<object> args)
     {
         // First check if the exception is valid
         WavyClass exception = (WavyClass)interpreter.namespaces["exception"].get("Exception");
         // Create a new instance of the exception class
-        WavyObject exception_object = (WavyObject)((Callable)interpreter.namespaces["exception"].get(exception_name)).call(interpreter, new System.Collections.Generic.List<object>());
+        WavyObject exception_object = (WavyObject)((Callable)interpreter.namespaces["exception"].get(exception_name)).call(interpreter, args);
         // First check if it extends 'Exception'
         WavyClass super = exception_object.the_class;
         while (super != exception && super != null)
@@ -18,7 +20,7 @@
             throw new RuntimeException("Class must be an Exception to be able to interrupt");
         }
         // Then throw the interrupt
-        throw new InterruptException(null, (string)exception_object.get("message"));
+        throw new InterruptException(exception_object, (string)exception_object.get("message"));
     }
 }
 

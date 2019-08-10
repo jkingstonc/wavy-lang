@@ -25,18 +25,27 @@ namespace exception
 	# Called when a key is not found in a dictionary
 	class KeyNotFoundException extends Exception
 	{
-		func KeyNotFoundException
+		func KeyNotFoundException(key)
 		{
-			super.Exception("The given key was not found")
+			super.Exception("The given key was not found: " + key)
 		}
 	}
 	
 	# Called when an array index is not found in a dictionary
 	class IndexOutOfRangeException extends Exception
 	{
-		func IndexOutOfRangeException
+		func IndexOutOfRangeException(index)
 		{
-			super.Exception("The index was out of range")
+			super.Exception("The index was out of range: " + index)
+		}
+	}
+
+	# Called when the user tries to access an invalid identifier
+	class CannotFindVariableException extends Exception
+	{
+		func CannotFindVariableException(name)
+		{
+			super.Exception("Variable cannot be found: " + name)
 		}
 	}
 }

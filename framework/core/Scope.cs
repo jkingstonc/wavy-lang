@@ -43,7 +43,7 @@ public class Scope
             enclosing_scope.assign(name, obj);
             return;
         }
-        throw new RuntimeException("Cannot find identifier '" + name + "'");
+        ExceptionManager.interrupt_wavy_exception("CannotFindVariableException", new List<object> { name });
     }
 
     // Assign at a scope distance, used when assigning to scoped variables not in ours
@@ -69,7 +69,8 @@ public class Scope
         {
             return enclosing_scope.get(name);
         }
-        throw new RuntimeException("Cannot find identifier '" + name + "'");
+        ExceptionManager.interrupt_wavy_exception("CannotFindVariableException", new List<object> { name });
+        return null;
     }
 
     // Get an enclosing scope at a specific depth

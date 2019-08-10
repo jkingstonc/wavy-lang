@@ -5,7 +5,6 @@ public class IONative
 {
     public static Dictionary<string, object> native_obj = new Dictionary<string, object>()
     {
-        { "test_native", NativeLoader.create_native(0, (interpreter, args) => "hello world") },
         { "print_native", NativeLoader.create_native(1, (interpreter, args) =>
             {
                 // Try to call @tostring

@@ -13,7 +13,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     // Used to find the depth of locals in the local_scope
     public Dictionary<Expression, int> local_depths = new Dictionary<Expression, int>();
     // Namepsaces containing local_scopes
-    private Dictionary<string, Scope> namespaces = new Dictionary<string, Scope>();
+    public Dictionary<string, Scope> namespaces = new Dictionary<string, Scope>();
     // The current namespace we are using
     private string using_namespace = null;
     // Loader for compiling modules
@@ -29,6 +29,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
         this.loader = new Loader(this);
         this.loader.load_builtin_lib();
         local_scope = global_scope;
+        ExceptionManager.interpreter = this;
     }
 
     public void interpret(List<Statement> statements)
@@ -833,6 +834,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
         {
             return ((WavyObject)obj).get(obj_get_expr.identifier);
         }
+        Console.WriteLine(obj);
         throw new RuntimeException("Must be object to get member");
     }
 
