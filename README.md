@@ -14,5 +14,5 @@ It is easy to create native c# extensions for your Wavy~ enviroment, your native
 
 
 <p align="center">
-  <img src="https://i.imgur.com/pYcD7Uq.png">
+  <img src="https://i.imgur.com/iLUQ0jh.png">
 </p>
