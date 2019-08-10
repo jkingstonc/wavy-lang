@@ -19,16 +19,13 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     // Loader for compiling modules
     public Loader loader;
 
-    // Shal we cache the location of the given callable of a object method
-    bool method_caching = true;
-
     public Interpreter()
     {
         debug = false;
+        local_scope = global_scope;
         NativeLoader.load_natives(this);
         this.loader = new Loader(this);
         this.loader.load_builtin_lib();
-        local_scope = global_scope;
         ExceptionManager.interpreter = this;
     }
 
@@ -834,7 +831,6 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
         {
             return ((WavyObject)obj).get(obj_get_expr.identifier);
         }
-        Console.WriteLine(obj);
         throw new RuntimeException("Must be object to get member");
     }
 

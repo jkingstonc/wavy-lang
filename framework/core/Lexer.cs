@@ -66,6 +66,13 @@ public class Lexer
                 }
             case '#':
                 {
+                    // Check for block comment
+                    if(expect('#'))
+                    {
+                        advance();
+                        process_comment_block();
+                        break;
+                    }
                     process_comment();
                     break;
                 }
@@ -295,6 +302,19 @@ public class Lexer
         advance();
         while (!(is_newline(peek())))
         {
+            advance();
+        }
+    }
+
+    private void process_comment_block()
+    {
+        int expect_comment_counter = 0;
+        while(expect_comment_counter<2)
+        {
+            if(peek() == '#')
+            {
+                expect_comment_counter++;
+            }
             advance();
         }
     }
