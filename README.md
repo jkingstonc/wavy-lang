@@ -10,8 +10,7 @@ Wavy~ was developed to be simple to use and learn, all you have to do to run you
 Alternatively use the tilde client to repl!
 
 # Native Customization
-It is easy to create native c# extensions for your Wavy~ enviroment, your native contributions for the Wavy~ project are always welcome!
-
+It is easy to create native c# extensions for your Wavy~ enviroment, your native contributions for the Wavy~ project are always welcome!<br /><br />
 
 <p align="center">
   <img src="https://i.imgur.com/iLUQ0jh.png">
