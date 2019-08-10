@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://i.imgur.com/iLUQ0jh.png">
+</p><br /><br />
+
 # What is Wavy~?
 Wavy~ is an intepreted, lightweight scripting language intended for use in runtime compilation in a c# enviroment
 
@@ -10,8 +14,4 @@ Wavy~ was developed to be simple to use and learn, all you have to do to run you
 Alternatively use the tilde client to repl!
 
 # Native Customization
-It is easy to create native c# extensions for your Wavy~ enviroment, your native contributions for the Wavy~ project are always welcome!<br /><br />
-
-<p align="center">
-  <img src="https://i.imgur.com/iLUQ0jh.png">
-</p>
+It is easy to create native c# extensions for your Wavy~ enviroment, your native contributions for the Wavy~ project are always welcome!
