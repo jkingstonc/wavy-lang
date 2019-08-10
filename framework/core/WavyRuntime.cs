@@ -15,7 +15,7 @@ public class WavyRuntime
         this.scope_resolver = new ScopeResolver(this.interpreter);
     }
 
-    public void compile(string lines)
+    public void run(string lines)
     {
         try
         {
