@@ -1,6 +1,8 @@
-﻿# James Clarke
-# 04/08/2019
-# Everything console IO related
+﻿##
+James Clarke
+04/08/2019
+Everything console IO related
+##
 
 namespace io
 {

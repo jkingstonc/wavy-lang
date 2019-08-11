@@ -1,4 +1,10 @@
-﻿namespace time
+﻿##
+James Clarke
+11/08/2019
+Everything time related
+##
+
+namespace time
 {
 	class Time
 	{
@@ -14,10 +20,11 @@
 
 		func @sub(right)
 		{
-			return timediff_native(right.time, this.time)
+			return timediff_native(this.time, right.time)
 		}
 	}
 
+	# Get the difference between 2 times
 	func difference(time1, time2)
 	{
 		return timediff_native(time1.time, time2.time)
