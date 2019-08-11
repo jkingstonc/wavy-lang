@@ -294,7 +294,7 @@ public class ScopeResolver : StatementVisitor, ExpressionVisitor
     // Visit a namespace definition
     public void visit_namespace(NamespaceStmt namespace_stmt)
     {
-        if (this.namespaces.ContainsKey((string)namespace_stmt.name.value))
+        /*if (this.namespaces.ContainsKey((string)namespace_stmt.name.value))
         {
             throw new RuntimeException("Namespace with name '" + (string)namespace_stmt.name.value + "' already exists");
         }
@@ -307,7 +307,11 @@ public class ScopeResolver : StatementVisitor, ExpressionVisitor
         start_scope();
         resolve(namespace_stmt.body);
         // Restore the previous scope
-        this.scopes = previous_scope;
+        this.scopes = previous_scope;*/
+
+        declare(namespace_stmt.name);
+        define(namespace_stmt.name);
+        resolve(namespace_stmt.body);
     }
 
     public void visit_class(ClassStmt class_stmt)

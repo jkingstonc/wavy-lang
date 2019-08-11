@@ -187,8 +187,8 @@ public class Parser
     {
         consume(Token.Type.Using);
         consume(Token.Type.NamespaceDefine, "Expected keyword 'namespace' after 'using'");
-        Token identifier = consume(Token.Type.Identifier, "Expected namespace identifier after using");
-        return new UsingStmt(identifier);
+        Expression _namespace = namespace_value();
+        return new UsingStmt(_namespace);
     }
 
     private ImportStmt import()
@@ -565,15 +565,10 @@ public class Parser
     private Expression namespace_value()
     {
         Expression higher_precidence = single_vals();
-        if (consume(Token.Type.NamespaceValue) != null)
+        if(consume(Token.Type.NamespaceValue)!=null)
         {
-            // The namespace name must be an identifier
-            if (!(higher_precidence is VariableExpr))
-            {
-                throw new ParseExceptionUnexpectedToken("Expected identifier before namespace value specifier");
-            }
-            Token identifier = consume(Token.Type.Identifier, "Expected identifier after namespace value specifier");
-            return new NamespaceValueExpr((VariableExpr)higher_precidence, identifier);
+            Expression value = namespace_value();
+            return new NamespaceValueExpr(higher_precidence, value);
         }
         return higher_precidence;
     }

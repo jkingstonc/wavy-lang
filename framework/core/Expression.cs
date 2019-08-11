@@ -27,13 +27,13 @@ public abstract class Expression
 
 public class NamespaceValueExpr : Expression
 {
-    public VariableExpr namespc;
-    public Token identifier;
+    public Expression namespc;
+    public Expression value;
 
-    public NamespaceValueExpr(VariableExpr namespc, Token identifier)
+    public NamespaceValueExpr(Expression namespc, Expression value)
     {
         this.namespc = namespc;
-        this.identifier = identifier;
+        this.value = value;
     }
 
     public override object visit(ExpressionVisitor visitor)

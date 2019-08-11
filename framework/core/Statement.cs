@@ -46,11 +46,11 @@ public class CompileStmt : Statement
 
 public class UsingStmt : Statement
 {
-    public Token namespace_identifier;
+    public Expression _namespace;
 
-    public UsingStmt(Token namespace_identifier)
+    public UsingStmt(Expression _namespace)
     {
-        this.namespace_identifier = namespace_identifier;
+        this._namespace = _namespace;
     }
 
     public override void visit(StatementVisitor visitor)

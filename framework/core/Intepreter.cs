@@ -8,13 +8,11 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
 {
     bool debug;
     // The global scope
-    private Scope global_scope = new Scope();
+    public Scope global_scope = new Scope();
     // The current local scope
-    private Scope local_scope;
+    public Scope local_scope;
     // Used to find the depth of locals in the local_scope
     public Dictionary<Expression, int> local_depths = new Dictionary<Expression, int>();
-    // Namepsaces containing local_scopes
-    public Dictionary<string, Scope> namespaces = new Dictionary<string, Scope>();
     // The current namespace we are using
     private Scope using_namespace = null;
     // Loader for compiling modules
@@ -71,22 +69,34 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     }
 
     // Return the value of a variable
+    public object lookup_variable(Token name)
+    {
+        return lookup_variable((string)name.value, null);
+    }
+
+    // Return the value of a variable
+    public object lookup_variable(string name)
+    {
+        return lookup_variable(name, null);
+    }
+
+    // Return the value of a variable
     public object lookup_variable(string name, Expression expression)
     {
         // Check if the value exists in the local_scope enviroment
-        if (local_depths.ContainsKey(expression))
+        if (local_scope.exists(name))
         {
             // Return it at the specific scope
             return local_scope.get(name);
         }
-        // Retrieve from globals
-        else if(global_scope.exists(name))
-        {
-            return global_scope.get(name);
-        }
-        else
+        else if (using_namespace != null)
         {
             return using_namespace.get(name);
+        }
+        // Retrieve from globals
+        else
+        {
+            return global_scope.get(name);
         }
     }
 
@@ -215,57 +225,6 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     {
         return Primitives.parse_literal(literal_expr.value);
     }
-    
-    // Generate a WavyObject from a literal value
-    public WavyObject generate_obj_from_literal(object literal)
-    {
-        string _namespace, _class = "";
-        // This only applies for the literal zero
-        if(literal is int)
-        {
-            _namespace = "int";
-            _class = "Int";
-        }
-        else if (literal is double)
-        {
-            if ((double)literal % 1 == 0)
-            {
-                _namespace = "int";
-                _class = "Int";
-            }
-            _namespace = "double";
-            _class = "Double";
-        }
-        else if (literal is string)
-        {
-            _namespace = "string";
-            _class = "String";
-        }
-        else if (literal is bool)
-        {
-            _namespace = "bool";
-            _class = "Bool";
-        }
-        else if(literal is IList &&
-               literal.GetType().IsGenericType &&
-               literal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))
-        {
-            _namespace = "list";
-            _class = "List";
-        }
-        else if (literal is WavyObject)
-        {
-            return (WavyObject)literal;
-        }
-        else
-        {
-            throw new RuntimeException("Cannot convert '" + literal + "' to WavyObject");
-        }
-        // Create a new Int object, with the value as the args
-        Callable int_class = (Callable)(this.namespaces[_namespace].get(_class));
-        // Call the object with the args
-        return (WavyObject)int_class.call(this, new List<object>() { literal });
-    }
 
     public object visit_list(ListExpr list_expr)
     {
@@ -276,7 +235,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
             list.Add(evaluate(expr));
         }
         // Create a new list object, with the items as the args
-        Callable list_class = (Callable)(this.namespaces["list"].get("List"));
+        Callable list_class = (Callable)(WavyNamespace.get_var_in_namespace(this.local_scope, "list", "List"));
         // Call the object with the args
         return list_class.call(this, new List<object>() { list });
     }
@@ -884,6 +843,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
         }
         // Finally, set the using namespace scope to the final NamespaceValueExpr value, which is a namespace name in VariableExpr form
         this.using_namespace = ((WavyNamespace)(next_namespace.scope.get(((VariableExpr)namespace_value).name))).scope;
+        Console.WriteLine("done using!");
     }
 
     public void visit_import(ImportStmt import_stmt)
@@ -986,7 +946,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
         {
             WavyFunction function = new WavyFunction(trycatch_stmt.catch_body, this.local_scope, false);
             // We want to create a new instance of a WavyException here
-            Callable exception_class = (Callable)namespaces["exception"].get("Exception");
+            Callable exception_class = (Callable)WavyNamespace.get_var_in_namespace(this.local_scope, "exception", "Exception");
             function.call(this,
                 new List<object>()
                     {
@@ -999,18 +959,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     public void visit_interrupt(InterruptStmt interrupt_stmt)
     {
         WavyObject exception_obj = (WavyObject)evaluate(interrupt_stmt.expression);
-        WavyClass exception = (WavyClass)namespaces["exception"].get("Exception");
-        // First check if it extends 'Exception'
-        WavyClass super = exception_obj.the_class;
-        while (super != exception && super != null)
-        {
-            super = super.superclass;
-        }
-        if(super != exception)
-        {
-            throw new RuntimeException("Class must be an Exception to be able to interrupt");
-        }
-        throw new InterruptException(exception_obj, (string)exception_obj.get("message"));
+        ExceptionManager.interrupt_wavy_exception(exception_obj);
     }
 
     public void visit_foriter(ForIterStmt foriter_stmt)
