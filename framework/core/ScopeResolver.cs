@@ -130,17 +130,7 @@ public class ScopeResolver : StatementVisitor, ExpressionVisitor
 
     public object visit_namespace_value(NamespaceValueExpr namespace_value_expr)
     {
-        if (this.namespaces.ContainsKey((string)namespace_value_expr.namespc.name.value))
-        {
-            // Save the scope and set the current to the desired namespace
-            Stack<Dictionary<string, bool>> previous_scope = this.scopes;
-            this.scopes = this.namespaces[(string)namespace_value_expr.namespc.name.value];
-            resolve_local_position(namespace_value_expr, namespace_value_expr.identifier);
-            this.scopes = previous_scope;
-            return null;
-        }
-        // This causes errors becuase it doesn't account for imports
-        //throw new RuntimeException("Cannot find namespace '" + (string)namespace_value_expr.namespc.name.value + "'");
+        // Needs work
         return null;
     }
 
@@ -154,18 +144,8 @@ public class ScopeResolver : StatementVisitor, ExpressionVisitor
 
     public object visit_namespace_assign(AssignNamespaceExpr assign_namespace_expr)
     {
-        if (this.namespaces.ContainsKey((string)assign_namespace_expr.identifier.namespc.name.value))
-        {
-            // Save the old scope and set the current to the new namespace scope
-            Stack<Dictionary<string, bool>> previous_scope = this.scopes;
-            this.scopes = this.namespaces[(string)assign_namespace_expr.identifier.namespc.name.value];
-            resolve(assign_namespace_expr.value);
-            // Resolve the variable to the interpreter
-            resolve_local_position(assign_namespace_expr, assign_namespace_expr.identifier.identifier);
-            this.scopes = previous_scope;
-            return null;
-        }
-        throw new RuntimeException("Namespace with name '" + (string)assign_namespace_expr.identifier.namespc.name.value + "' doesn't exist");
+        // Needs work
+        return null;
     }
 
     public object visit_literal(LiteralExpr literal_expr)
@@ -277,12 +257,7 @@ public class ScopeResolver : StatementVisitor, ExpressionVisitor
 
     public void visit_using(UsingStmt using_stmt)
     {
-        if (this.namespaces.ContainsKey((string)using_stmt.namespace_identifier.value))
-        {
-            return;
-        }
-        // This causes errors becuase it doesn't account for imports
-        //throw new RuntimeException("Cannot find namespace '" + (string)using_stmt.namespace_identifier.value + "'");
+        // Needs work
         return;
     }
 

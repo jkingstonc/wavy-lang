@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using wavy.core;
 
 public class Interpreter : ExpressionVisitor, StatementVisitor
 {
@@ -15,7 +16,7 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     // Namepsaces containing local_scopes
     public Dictionary<string, Scope> namespaces = new Dictionary<string, Scope>();
     // The current namespace we are using
-    private string using_namespace = null;
+    private Scope using_namespace = null;
     // Loader for compiling modules
     public Loader loader;
 
@@ -64,13 +65,13 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     }
 
     // Return the value of a variable
-    private object lookup_variable(Token name, Expression expression)
+    public object lookup_variable(Token name, Expression expression)
     {
         return lookup_variable((string)name.value, expression);
     }
 
     // Return the value of a variable
-    private object lookup_variable(string name, Expression expression)
+    public object lookup_variable(string name, Expression expression)
     {
         // Check if the value exists in the local_scope enviroment
         if (local_depths.ContainsKey(expression))
@@ -78,15 +79,14 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
             // Return it at the specific scope
             return local_scope.get(name);
         }
-        // Check if the namespace we are using has the desired variable
-        else if (using_namespace != null && this.namespaces[this.using_namespace].exists(name))
-        {
-            return this.namespaces[this.using_namespace].get(name);
-        }
         // Retrieve from globals
-        else
+        else if(global_scope.exists(name))
         {
             return global_scope.get(name);
+        }
+        else
+        {
+            return using_namespace.get(name);
         }
     }
 
@@ -153,12 +153,21 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     // Get the value from a given namespace & identifier
     public object visit_namespace_value(NamespaceValueExpr namespace_value_expr)
     {
-        // Check if the given namespace exists
-        if (this.namespaces.ContainsKey((string)namespace_value_expr.namespc.name.value))
+        // Get the first namespace
+        WavyNamespace next_namespace = (WavyNamespace)evaluate(namespace_value_expr.namespc);
+        // The expression value of the first namespace
+        Expression namespace_value = namespace_value_expr.value;
+
+        while(namespace_value is NamespaceValueExpr)
         {
-            return this.namespaces[(string)namespace_value_expr.namespc.name.value].get(namespace_value_expr.identifier);
+            // Get the name of the namespace in the nested namespace expression
+            VariableExpr nested_namespace_name = ((VariableExpr)((NamespaceValueExpr)namespace_value).namespc);
+            // Get the next namespace from the scope of the previous
+            next_namespace = (WavyNamespace)next_namespace.scope.get(nested_namespace_name.name);
+            // Set the namespace value to the next value
+            namespace_value = ((NamespaceValueExpr)namespace_value).value;
         }
-        throw new RuntimeException("Cannot find namespace '" + (string)namespace_value_expr.namespc.name.value + "'");
+        return next_namespace.scope.get(((VariableExpr)namespace_value).name);
     }
 
     public object visit_assign(AssignExpr assign_expression)
@@ -181,25 +190,25 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     // When assigning to a value in a specific namespace
     public object visit_namespace_assign(AssignNamespaceExpr assign_namespace_expr)
     {
-        // Check the given namespace exists
-        if (this.namespaces.ContainsKey((string)assign_namespace_expr.identifier.namespc.name.value))
+        // NOTE: This code is literally the same as 'visit_namespace_value', & thus should be optimised
+        // Get the first namespace
+        WavyNamespace next_namespace = (WavyNamespace)evaluate(assign_namespace_expr.identifier.namespc);
+        // The expression value of the first namespace
+        Expression namespace_value = assign_namespace_expr.identifier.value;
+
+        while (namespace_value is NamespaceValueExpr)
         {
-            object value = evaluate(assign_namespace_expr.value);
-            // Check the namespace value exists
-            if (local_depths.ContainsKey(assign_namespace_expr))
-            {
-                // Save the old scope and set the current to the new namespace scope
-                Scope previous_scope = this.local_scope;
-                this.local_scope = this.namespaces[(string)assign_namespace_expr.identifier.namespc.name.value];
-                // Assign the value in the scope at the given depth in the new namespace
-                int distance = local_depths[assign_namespace_expr];
-                local_scope.assign_at(distance, assign_namespace_expr.identifier.identifier, value);
-                // Restore the namespace
-                this.local_scope = previous_scope;
-                return value;
-            }
+            // Get the name of the namespace in the nested namespace expression
+            VariableExpr nested_namespace_name = ((VariableExpr)((NamespaceValueExpr)namespace_value).namespc);
+            // Get the next namespace from the scope of the previous
+            next_namespace = (WavyNamespace)next_namespace.scope.get(nested_namespace_name.name);
+            // Set the namespace value to the next value
+            namespace_value = ((NamespaceValueExpr)namespace_value).value;
         }
-        throw new RuntimeException("Namespace with name '" + (string)assign_namespace_expr.identifier.namespc.name.value + "' doesn't exist");
+        object value = evaluate(assign_namespace_expr.value);
+        // Assign the value to the evaluated expression value
+        next_namespace.scope.assign(((VariableExpr)namespace_value).name, value);
+        return value;
     }
 
     public object visit_literal(LiteralExpr literal_expr)
@@ -858,12 +867,23 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
 
     public void visit_using(UsingStmt using_stmt)
     {
-        if (this.namespaces.ContainsKey((string)using_stmt.namespace_identifier.value))
+        // NOTE: This code is literally the same as 'visit_namespace_value', & thus should be optimised
+        // Get the first namespace
+        WavyNamespace next_namespace = (WavyNamespace)evaluate(using_stmt._namespace);
+        // The expression value of the first namespace
+        Expression namespace_value = using_stmt._namespace;
+
+        while (namespace_value is NamespaceValueExpr)
         {
-            this.using_namespace=((string)using_stmt.namespace_identifier.value);
-            return;
+            // Get the name of the namespace in the nested namespace expression
+            VariableExpr nested_namespace_name = ((VariableExpr)((NamespaceValueExpr)namespace_value).namespc);
+            // Get the next namespace from the scope of the previous
+            next_namespace = (WavyNamespace)next_namespace.scope.get(nested_namespace_name.name);
+            // Set the namespace value to the next value
+            namespace_value = ((NamespaceValueExpr)namespace_value).value;
         }
-        throw new RuntimeException("Cannot find namespace '" + (string)using_stmt.namespace_identifier.value + "'");
+        // Finally, set the using namespace scope to the final NamespaceValueExpr value, which is a namespace name in VariableExpr form
+        this.using_namespace = ((WavyNamespace)(next_namespace.scope.get(((VariableExpr)namespace_value).name))).scope;
     }
 
     public void visit_import(ImportStmt import_stmt)
@@ -891,14 +911,11 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
     // Visit a namespace definition
     public void visit_namespace(NamespaceStmt namespace_stmt)
     {
-        // Do we want namespace variables to be indipendent or have the previous scope? [new Scope(this.local_scope);]
-        if(this.namespaces.ContainsKey((string)namespace_stmt.name.value))
-        {
-            throw new RuntimeException("Namespace with name '" + (string)namespace_stmt.name.value + "' already exists");
-        }
-        // Create a new scope for the given namespace, and execute the namespace code
-        this.namespaces.Add((string)namespace_stmt.name.value, new Scope());
-        execute_block(namespace_stmt.body, this.namespaces[(string)namespace_stmt.name.value]);
+        WavyNamespace wnamespace = new WavyNamespace((string)namespace_stmt.name.value, new Scope(this.local_scope));
+        // Define the namespace in the local scope
+        this.local_scope.define(wnamespace.name, wnamespace);
+        // Execute the new namespace with the new scope
+        execute_block(namespace_stmt.body, wnamespace.scope);
     }
 
     public void visit_class(ClassStmt class_stmt)
