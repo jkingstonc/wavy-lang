@@ -2,20 +2,25 @@
 
 public class ExceptionManager
 {
+
+    public const string NAMESPACE_LOCATION = "exception";
+    public const string BASE_EXCEPTION_CLASS = "Exception";
+
+
     public static Interpreter interpreter;
 
     // For use when we want to cause an interrupt from the wavy~ core, such as IndexOutOfBounds
     public static void interrupt_wavy_exception(string exception_name, System.Collections.Generic.List<object> args)
     {
         // Create a new instance of the exception class
-        WavyObject exception_object = (WavyObject)((Callable)interpreter.lookup_variable(exception_name)).call(interpreter, args);
+        WavyObject exception_object = (WavyObject)((Callable)WavyNamespace.get_var_in_namespace(interpreter.local_scope, NAMESPACE_LOCATION, exception_name)).call(interpreter, args);
         interrupt_wavy_exception(exception_object);
     }
 
     public static void interrupt_wavy_exception(WavyObject exception_object)
     {
-        // First check if the exception is valid
-        WavyClass exception = (WavyClass)WavyNamespace.get_var_in_namespace(interpreter.local_scope, "exception", "Exception");
+        // First check if the exception is valid by checking it extends the base Exception WavyClass
+        WavyClass exception = (WavyClass)WavyNamespace.get_var_in_namespace(interpreter.local_scope, NAMESPACE_LOCATION, BASE_EXCEPTION_CLASS);
         // First check if it extends 'Exception'
         WavyClass super = exception_object.the_class;
         while (super != exception && super != null)

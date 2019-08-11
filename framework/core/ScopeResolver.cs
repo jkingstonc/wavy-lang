@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using wavy.core;
 
 // Used to resolve the scope of local variables, and check the variable references are valid
 public class ScopeResolver : StatementVisitor, ExpressionVisitor
@@ -130,7 +131,10 @@ public class ScopeResolver : StatementVisitor, ExpressionVisitor
 
     public object visit_namespace_value(NamespaceValueExpr namespace_value_expr)
     {
-        // Needs work
+        // Needs work as it causes StackOverflow if we are retrieving an invalid identifier
+        // We need some way of checking whether the namespace is valid, and the variable exists in the namespace
+        resolve(namespace_value_expr.namespc);
+        resolve(namespace_value_expr.value);
         return null;
     }
 
@@ -144,7 +148,9 @@ public class ScopeResolver : StatementVisitor, ExpressionVisitor
 
     public object visit_namespace_assign(AssignNamespaceExpr assign_namespace_expr)
     {
-        // Needs work
+        // Needs work as it causes StackOverflow if we are assigning to an invalid identifier
+        resolve(assign_namespace_expr.identifier);
+        resolve(assign_namespace_expr.value);
         return null;
     }
 
@@ -294,21 +300,6 @@ public class ScopeResolver : StatementVisitor, ExpressionVisitor
     // Visit a namespace definition
     public void visit_namespace(NamespaceStmt namespace_stmt)
     {
-        /*if (this.namespaces.ContainsKey((string)namespace_stmt.name.value))
-        {
-            throw new RuntimeException("Namespace with name '" + (string)namespace_stmt.name.value + "' already exists");
-        }
-        // Add a new namespace to the dicionary
-        // Do we want namespace variables to be indipendent or have the previous scope? [new Scope(this.scoped);]
-        this.namespaces.Add((string)namespace_stmt.name.value, new Stack<Dictionary<string, bool>>());
-        // Save the old scope and set the current to the new namespace scope
-        Stack<Dictionary<string, bool>> previous_scope = this.scopes;
-        this.scopes = this.namespaces[(string)namespace_stmt.name.value];
-        start_scope();
-        resolve(namespace_stmt.body);
-        // Restore the previous scope
-        this.scopes = previous_scope;*/
-
         declare(namespace_stmt.name);
         define(namespace_stmt.name);
         resolve(namespace_stmt.body);
