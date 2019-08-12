@@ -472,23 +472,23 @@ public class Interpreter : ExpressionVisitor, StatementVisitor
                 {
                     if (left is WavyObject && right is WavyObject)
                     {
-                        return call_func_on_obj((WavyObject)left, WavyObject.at_method_names[AtMethod.MUL], new List<object>() { (WavyObject)right });
+                        return call_func_on_obj((WavyObject)left, WavyObject.at_method_names[AtMethod.DIV], new List<object>() { (WavyObject)right });
                     }
                     else if (left is double && right is double)
                     {
-                        return ((double)left * (double)right);
+                        return ((double)left / (double)right);
                     }
                     else if (left is int && right is int)
                     {
-                        return ((int)left * (int)right);
+                        return ((int)left / (int)right);
                     }
                     else if (left is int && right is double)
                     {
-                        return ((int)left * Convert.ToInt32(right));
+                        return ((int)left / Convert.ToInt32(right));
                     }
                     else if (left is double && right is int)
                     {
-                        return (Convert.ToInt32(left) * (int)right);
+                        return (Convert.ToInt32(left) / (int)right);
                     }
                     throw new RuntimeException("Cannot divide non primitive types");
                 }
