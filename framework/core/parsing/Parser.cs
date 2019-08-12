@@ -430,88 +430,124 @@ public class Parser
 
     private Expression equality()
     {
-        Expression higher_precidence = comparison();
+        Expression higher_precedence = comparison();
         while (expect(Token.Type.Equals) || expect(Token.Type.NotEquals))
         {
             Token op = consume();
             Expression right = comparison();
-            higher_precidence = new BinaryExpr(higher_precidence, op, right);
+            higher_precedence = new BinaryExpr(higher_precedence, op, right);
         }
-        return higher_precidence;
+        return higher_precedence;
     }
 
     private Expression comparison()
     {
-        Expression higher_precidence = bitwise_shift();
+        Expression higher_precedence = bitwise_shift();
         while (expect(Token.Type.Greater) || expect(Token.Type.GreaterEqual) || expect(Token.Type.Less) || expect(Token.Type.LessEqual))
         {
             Token op = consume();
             Expression right = bitwise_shift();
-            higher_precidence = new BinaryExpr(higher_precidence, op, right);
+            higher_precedence = new BinaryExpr(higher_precedence, op, right);
         }
-        return higher_precidence;
+        return higher_precedence;
     }
 
     private Expression bitwise_shift()
     {
-        Expression higher_precidence = plus_minus();
+        Expression higher_precedence = plus_minus();
         while (expect(Token.Type.BitwiseShiftLeft) || expect(Token.Type.BitwiseShiftRight))
         {
             Token op = consume();
             Expression right = plus_minus();
-            higher_precidence = new BinaryExpr(higher_precidence, op, right);
+            higher_precedence = new BinaryExpr(higher_precedence, op, right);
         }
-        return higher_precidence;
+        return higher_precedence;
     }
 
     private Expression plus_minus()
     {
-        Expression higher_precidence = mul_div_mod_rem();
+        Expression higher_precedence = mul_div_mod_rem();
         while (expect(Token.Type.Plus) || expect(Token.Type.Minus))
         {
             Token op = consume();
             // Check for compound assignment
             if (consume(Token.Type.Assignment) != null)
             {
-                if(!(higher_precidence is VariableExpr))
-                {
-                    throw new ParseExceptionUnexpectedToken("Compound assignment can only be applied to an identifier");
-                }
                 Expression value = mul_div_mod_rem();
-                return new AssignExpr(((VariableExpr)higher_precidence).name, new BinaryExpr((VariableExpr)higher_precidence, op, value));
+                // Check the type of the higher precidence
+                // If we are assigning to a non-object variable
+                if (higher_precedence.GetType() == typeof(VariableExpr))
+                {
+                    VariableExpr var = (VariableExpr)higher_precedence;
+                    return new AssignExpr(var.name, new BinaryExpr(higher_precedence, op, value));
+                }
+                // If we are assigning to a namespace value
+                else if (higher_precedence.GetType() == typeof(NamespaceValueExpr))
+                {
+                    NamespaceValueExpr var = (NamespaceValueExpr)higher_precedence;
+                    return new AssignNamespaceExpr(var, new BinaryExpr(higher_precedence, op, value));
+                }
+                // If we are assigning to a member variable
+                else if (higher_precedence.GetType() == typeof(ObjGetExpr))
+                {
+                    ObjGetExpr member = (ObjGetExpr)higher_precedence;
+                    return new ObjSetExpr(member.obj, member.identifier, new BinaryExpr(higher_precedence, op, value));
+                }
+                else
+                {
+                    throw new ParseExceptionUnexpectedToken("Compound assignment cannot be applied to " + higher_precedence.GetType());
+                }
             }
             else
             {
                 Expression right = mul_div_mod_rem();
-                higher_precidence = new BinaryExpr(higher_precidence, op, right);
+                higher_precedence = new BinaryExpr(higher_precedence, op, right);
             }
         }
-        return higher_precidence;
+        return higher_precedence;
     }
 
     private Expression mul_div_mod_rem()
     {
-        Expression higher_precidence = unary();
+        Expression higher_precedence = unary();
         while (expect(Token.Type.Multiply) || expect(Token.Type.Divide) || expect(Token.Type.Mod) || expect(Token.Type.NoRemainder))
         {
             Token op = consume();
             // Check for compound assignment
             if (consume(Token.Type.Assignment) != null)
             {
-                if (!(higher_precidence is VariableExpr))
-                {
-                    throw new ParseExceptionUnexpectedToken("Compound assignment can only be applied to an identifier");
-                }
                 Expression value = unary();
-                return new AssignExpr(((VariableExpr)higher_precidence).name, new BinaryExpr((VariableExpr)higher_precidence, op, value));
+                // Check the type of the higher precidence
+                // If we are assigning to a non-object variable
+                if (higher_precedence.GetType() == typeof(VariableExpr))
+                {
+                    VariableExpr var = (VariableExpr)higher_precedence;
+                    return new AssignExpr(var.name, new BinaryExpr(higher_precedence, op, value));
+                }
+                // If we are assigning to a namespace value
+                else if (higher_precedence.GetType() == typeof(NamespaceValueExpr))
+                {
+                    NamespaceValueExpr var = (NamespaceValueExpr)higher_precedence;
+                    return new AssignNamespaceExpr(var, new BinaryExpr(higher_precedence, op, value));
+                }
+                // If we are assigning to a member variable
+                else if (higher_precedence.GetType() == typeof(ObjGetExpr))
+                {
+                    ObjGetExpr member = (ObjGetExpr)higher_precedence;
+                    return new ObjSetExpr(member.obj, member.identifier, new BinaryExpr(higher_precedence, op, value));
+                }
+                else
+                {
+                    throw new ParseExceptionUnexpectedToken("Compound assignment cannot be applied to " + higher_precedence.GetType());
+                }
             }
             else
             {
                 Expression right = unary();
-                higher_precidence = new BinaryExpr(higher_precidence, op, right);
+                higher_precedence = new BinaryExpr(higher_precedence, op, right);
             }
         }
-        return higher_precidence;
+        return higher_precedence;
     }
 
     private Expression unary()
@@ -523,8 +559,31 @@ public class Parser
             {
                 Token un_operator = consume();
                 Token op = (un_operator.type == Token.Type.Increment) ? new Token(Token.Type.Plus, null) : new Token(Token.Type.Minus, null);
-                VariableExpr identifier = (VariableExpr)unary();
-                return new AssignExpr(identifier.name, new BinaryExpr(identifier, op, new LiteralExpr(1)));
+                Expression to_crement = mul_div_mod_rem();
+
+                // Check the type of the incrementing expression
+                // If we are incrementing to a non-object variable
+                if (to_crement.GetType() == typeof(VariableExpr))
+                {
+                    VariableExpr var = (VariableExpr)to_crement;
+                    return new AssignExpr(var.name, new BinaryExpr(to_crement, op, new LiteralExpr(1)));
+                }
+                // If we are incrementing a namespace value
+                else if (to_crement.GetType() == typeof(NamespaceValueExpr))
+                {
+                    NamespaceValueExpr var = (NamespaceValueExpr)to_crement;
+                    return new AssignNamespaceExpr(var, new BinaryExpr(to_crement, op, new LiteralExpr(1)));
+                }
+                // If we are incrementing a member variable
+                else if (to_crement.GetType() == typeof(ObjGetExpr))
+                {
+                    ObjGetExpr member = (ObjGetExpr)to_crement;
+                    return new ObjSetExpr(member.obj, member.identifier, new BinaryExpr(to_crement, op, new LiteralExpr(1)));
+                }
+                else
+                {
+                    throw new ParseExceptionUnexpectedToken("Increment assignment cannot be applied to " + to_crement.GetType());
+                }
             }
             else
             {
@@ -538,39 +597,39 @@ public class Parser
 
     private Expression call()
     {
-        Expression higher_precidence = namespace_value();
+        Expression higher_precedence = namespace_value();
         while (true)
         {
             // If we are calling a function
             if (expect(Token.Type.LeftParenthesis))
             {
                 List<Expression> args = get_args();
-                higher_precidence = new CallExpr(higher_precidence, args);
+                higher_precedence = new CallExpr(higher_precedence, args);
             }
             // If we are getting a member/method from an object
             else if (consume(Token.Type.Callable) != null)
             {
                 Token identifier = consume(Token.Type.Identifier, "Expected identifier after '.'");
-                higher_precidence = new ObjGetExpr(higher_precidence, identifier);
+                higher_precedence = new ObjGetExpr(higher_precedence, identifier);
             }
             else
             {
                 break;
             }
         }
-        return higher_precidence;
+        return higher_precedence;
     }
 
     // Check if we are referencing a value in a specific namespace
     private Expression namespace_value()
     {
-        Expression higher_precidence = single_vals();
+        Expression higher_precedence = single_vals();
         if(consume(Token.Type.NamespaceValue)!=null)
         {
             Expression value = namespace_value();
-            return new NamespaceValueExpr(higher_precidence, value);
+            return new NamespaceValueExpr(higher_precedence, value);
         }
-        return higher_precidence;
+        return higher_precedence;
     }
 
     // Check if we have said a single value such as false, true, xyz etc
