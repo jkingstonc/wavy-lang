@@ -1,3 +1,6 @@
+# NOTE!
+## This is an old version of wavy. It uses the same language design, however doesn't compile to bytecode for a vm, instead it executes and evaluates directly. However, in this state, it does work
+
 <p align="center">
   <img src="https://i.imgur.com/iLUQ0jh.png">
 </p><br /><br />
